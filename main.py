@@ -1,22 +1,19 @@
 import json
 import os
-import datetime
+import urllib.parse
+import webbrowser
 
 
 class Note:
-    def __init__(self, title, content, date = None):
+    def __init__(self, title, content):
         self.title = title
         self.content = content
-        self.date = date or datetime.datetime.now() #@KrzyzakPatryk, sprawdz to Jas. Generalnie @Pawel zasugerowal takie rozwiazanie, 
-                                                    #sprawdza czy date jest pustym obiektem i jak tak to wchodzi systemowa data 
-                                                    #a jak nie to to co wpisał użytkownik
 
     def __str__(self):
-        return f"Tytuł: {self.title} \nOpis: {self.content} \nData utworzenia: {self.date}\n"
+        return f"Tytuł: {self.title} \nOpis: {self.content} \n"
     def to_dict(self):
         """Metoda do zmiany obiektu notatki na slownik, do zapisu JSON"""
-        return {"title": self.title, "content": self.content, "date": (self.date).strftime("%Y-%m-%d %H:%M")}
-
+        return {"title": self.title, "content": self.content}
 
 class Notebook:
     def __init__(self,filename = "notatki.json"):
@@ -46,9 +43,7 @@ class Notebook:
                 raw_data = json.load(file)
                 self.notes = []
                 for item in raw_data:
-                    date = datetime.datetime.strptime(item["date"], "%Y-%m-%d %H:%M") #konwertuje tekst daty na obiekt daty 
-                                                                                      #tak aby ładnie dało się na nim wykonywać operacje
-                    self.notes.append(Note(item["title"], item["content"], date))
+                    self.notes.append(Note(item["title"],item["content"]))
             print(f"---Wczytano {len(self.notes)} notatek z JSON.---")
         except Exception as e:
             print(f"---Błąd podczas wczytywania {e}---")
@@ -81,6 +76,28 @@ class Notebook:
         else:
             print("---Błąd. Nie ma notatki o takim numerze---\n")
 
+    def send_mail(self, index, whereto):
+        real_index = index - 1
+        if real_index > len(self.notes):
+            print(f"---Błąd. Nie ma notatki o takim numerze---\n")
+            return
+
+        title = self.notes[real_index].title
+        content = self.notes[real_index].content
+
+        m_title = f"Notatka: {title}"
+        m_content = f"Przesyłam notatkę:\n\n {content}"
+
+        # Konwersja na URL tak aby :mailto mogło ładnie obsłużyć całą wiadomość wraz ze znakami
+        m_coded_title = urllib.parse.quote(m_title)
+        m_coded_content = urllib.parse.quote(m_content)
+
+        url = f"mailto:{whereto}?subject={m_coded_title}&body={m_coded_content}"
+
+        # Wywołuje tutaj systemowy program poczty/
+        webbrowser.open(url)
+        print(f"Uruchomiono systemową pocztę dla adresata {whereto} z notatką o tytule {m_title}\n")
+
 if __name__ == "__main__":
     notatnik = Notebook()
     notatnik.load_from_json()
@@ -89,12 +106,5 @@ if __name__ == "__main__":
     notatnik.add_note("Zakupy", "Kup piwo")
     notatnik.add_note("Nauka", "Naucz sie arabskiego")
 
-    print("STAN PRZED ZMIANAMI:")
-    notatnik.read_notes(5)
-
-    notatnik.edit_notes(2, new_title="Zakupy na weekend", new_content="Kup piwo i więcej piwa")
-    notatnik.delete_notes(1)
-
-    print("STAN PO ZMIANACH:")
-    notatnik.read_notes(5)
-    notatnik.save_to_json()
+    print("Sprawdzenie funkcji poczty")
+    notatnik.send_mail(2,"jakisarabzpiwem@gmail.com")

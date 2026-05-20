@@ -1,17 +1,21 @@
 import json
 import os
+import datetime
 
 
 class Note:
-    def __init__(self, title, content):
+    def __init__(self, title, content, date = None):
         self.title = title
         self.content = content
+        self.date = date or datetime.datetime.now() #@KrzyzakPatryk, sprawdz to Jas. Generalnie @Pawel zasugerowal takie rozwiazanie, 
+                                                    #sprawdza czy date jest pustym obiektem i jak tak to wchodzi systemowa data 
+                                                    #a jak nie to to co wpisał użytkownik
 
     def __str__(self):
-        return f"Tytuł: {self.title} \nOpis: {self.content} \n"
+        return f"Tytuł: {self.title} \nOpis: {self.content} \nData utworzenia: {self.date}\n"
     def to_dict(self):
         """Metoda do zmiany obiektu notatki na slownik, do zapisu JSON"""
-        return {"title": self.title, "content": self.content}
+        return {"title": self.title, "content": self.content, "date": (self.date).strftime("%Y-%m-%d %H:%M")}
 
 
 class Notebook:
@@ -42,7 +46,9 @@ class Notebook:
                 raw_data = json.load(file)
                 self.notes = []
                 for item in raw_data:
-                    self.notes.append(Note(item["title"],item["content"]))
+                    date = datetime.datetime.strptime(item["date"], "%Y-%m-%d %H:%M") #konwertuje tekst daty na obiekt daty 
+                                                                                      #tak aby ładnie dało się na nim wykonywać operacje
+                    self.notes.append(Note(item["title"], item["content"], date))
             print(f"---Wczytano {len(self.notes)} notatek z JSON.---")
         except Exception as e:
             print(f"---Błąd podczas wczytywania {e}---")

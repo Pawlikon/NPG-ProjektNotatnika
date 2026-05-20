@@ -12,7 +12,7 @@ class Note:
                                                     #a jak nie to to co wpisał użytkownik
 
     def __str__(self):
-        return f"Tytuł: {self.title} \nOpis: {self.content} \nData utworzenia: {self.date}\n"
+        return f"Tytuł: {self.title} \nOpis: {self.content} \nData utworzenia: {(self.date).strftime("%Y-%m-%d %H:%M")}\n"
     def to_dict(self):
         """Metoda do zmiany obiektu notatki na slownik, do zapisu JSON"""
         return {"title": self.title, "content": self.content, "date": (self.date).strftime("%Y-%m-%d %H:%M")}

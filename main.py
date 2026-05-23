@@ -75,6 +75,14 @@ class Notebook:
         else:
             print("---Błąd. Nie ma notatki o takim numerze---\n")
 
+    def read_single_note(self, index):
+        real_index = index - 1
+        if 0 <= real_index < len(self.notes):
+            print(f"--- Wyświetlam notatkę nr {index} ---")
+            print(self.notes[real_index])
+        else:
+            print("---Błąd. Nie ma notatki o takim numerze---\n")
+
 if __name__ == "__main__":
     notatnik = Notebook()
     notatnik.load_from_json()
@@ -92,3 +100,4 @@ if __name__ == "__main__":
     print("STAN PO ZMIANACH:")
     notatnik.read_notes(5)
     notatnik.save_to_json()
+    notatnik.read_single_note(1)

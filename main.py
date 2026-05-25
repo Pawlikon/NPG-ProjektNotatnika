@@ -15,11 +15,11 @@ class Notebook:
         self.notes.append(notatka)
         print(f"Notatka dodana pomyślnie :) : '{title}' \n")
 
-    def read_notes(self,n):
+    def read_notes(self,n=None):
         if not self.notes:
             print ("Brak notatek do wyświetlenia. \n")
             return
-        limit = min(n,len(self.notes))
+        limit = len(self.notes) if n is None else min(n,len(self.notes))
         print(f"Wyświetlam {limit} notatek z {len(self.notes)} notatek. \n")
         for i in range (limit):
             print(f"{i+1}. {self.notes[i]}")

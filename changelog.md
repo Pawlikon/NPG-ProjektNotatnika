@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Added mail handling via "mailto" url. Works with almost every mail app (even through browsers) @KrzyzakPatryk
+- (#7) Added mail handling via "mailto" url. Works with almost every mail app (even through browsers) @KrzyzakPatryk
 
 ### Changed
 

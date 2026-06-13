@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Removing a tag from the notebook automatically strips it from all existing notes.
 
 
+- (#8) Classes for notes and notebooks.
+
 ### Changed
 
 ### Removed

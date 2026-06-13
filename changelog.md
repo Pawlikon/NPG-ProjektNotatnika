@@ -10,6 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (#7) Added mail handling via "mailto" url. Works with almost every mail app (even through browsers) @KrzyzakPatryk
 
+- (#8) Classes for notes and notebooks.
+
+- (#9) Complete tag system, documentation:
+    - Tags are stored in a global set unique to each notebook to prevent duplicates
+    - Global tags are saved into a separate JSON file (`tagi.json`)
+    - Input is automatically formatted (whitespace stripped, capitalized) to avoid near-duplicate tags (e.g., "work" vs "Work")
+    - Tags can only be added to a note if they exist in the global set (so basically you can add tags to notes only from the list)
+    - Tags cannot be duplicated
+    - Tags can be removed from note and notebook
+    - Removing a tag from the notebook automatically strips it from all existing notes.
+
+
 ### Changed
 
 ### Removed

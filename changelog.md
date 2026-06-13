@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- (#10) Małe poprawki w kodzie:
+  - Dodano date modyfikacji notatki
+
+  - Ze względu na problemy z branchem mail-handling manualnie przepisałem tu kod na obsługe wysyłki maili
+
+  Mam nadzieje, że nic wiecej tu nie zepsulem xd
+
+
 - (#9) Complete tag system, documentation:
     - Tags are stored in a global set unique to each notebook to prevent duplicates
     - Global tags are saved into a separate JSON file (`tagi.json`)
@@ -21,5 +29,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - (#8) Classes for notes and notebooks.
 
 ### Changed
+
+- Sprawdzenie czy notatki rzeczywiście się zmieniły i można dać info, że coś się zmieniło
+
 
 ### Removed

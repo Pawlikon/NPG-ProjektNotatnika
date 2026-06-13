@@ -14,7 +14,7 @@ class Note:
 
     def __str__(self):
         tags_str = ", ".join(self.tags) if self.tags else "Brak"
-        return f"Tytuł: {self.title} \nOpis: {self.content} \nTagi: [{tags_str}] \nData utworzenia: {(self.date).strftime("%Y-%m-%d %H:%M")}\n"
+        return f"Tytuł: {self.title} \nOpis: {self.content} \nTagi: [{tags_str}] \nData utworzenia: {self.date.strftime('%Y-%m-%d %H:%M')}\n"
     def to_dict(self):
         """Metoda do zmiany obiektu notatki na slownik, do zapisu JSON"""
         return {"title": self.title, "content": self.content, "date": (self.date).strftime("%Y-%m-%d %H:%M"), "tags": self.tags}

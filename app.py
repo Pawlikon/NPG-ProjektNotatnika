@@ -1,7 +1,5 @@
 import streamlit as st
-import datetime
-# Updated import from classes to models
-from models import Notebook, Note
+from models import Notebook
 
 st.set_page_config(page_title="Python Notes", layout="wide")
 
@@ -10,6 +8,10 @@ st.markdown("""
     <style>
     /* Target and remove the Deploy button and options menu across all Streamlit versions */
     [data-testid="stDeploymentDropdown"], .stAppDeployButton, [data-testid="stMainMenu"] {
+        display: none !important;
+    }
+    /* Hide "Press Enter to apply" instructions globally */
+    [data-testid="InputInstructions"] {
         display: none !important;
     }
     /* Keep the header container container tracking structural but fully see-through */

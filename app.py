@@ -39,7 +39,7 @@ if "selected_note_index" not in st.session_state:
 
 nb = st.session_state.notebook
 
-# Force the radio widget state to match the selection index rerun
+# Sync the radio widget's state with the master selection index before it gets instantiated
 st.session_state.sidebar_radio = st.session_state.selected_note_index
 
 # Callback function to eliminate radio button lag
@@ -55,7 +55,6 @@ with st.sidebar:
         nb.save_to_json()
         new_index = len(nb.notes)
         st.session_state.selected_note_index = new_index
-        st.session_state.sidebar_radio = new_index
         st.rerun()
 
     st.write("---")
@@ -147,7 +146,6 @@ if nb.notes and st.session_state.selected_note_index:
             nb.delete_notes(idx)
             nb.save_to_json()
             st.session_state.selected_note_index = 1 if len(nb.notes) > 0 else None
-            st.session_state.sidebar_radio = st.session_state.selected_note_index
             st.toast("Notatka usunięta")
             st.rerun()
 

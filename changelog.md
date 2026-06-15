@@ -30,7 +30,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Sprawdzenie czy notatki rzeczywiście się zmieniły i można dać info, że coś się zmieniło
-
-
+- (#14) Sprawdzenie czy notatki rzeczywiście się zmieniły
 ### Removed

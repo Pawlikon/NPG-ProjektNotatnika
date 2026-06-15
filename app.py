@@ -1,6 +1,7 @@
 import streamlit as st
 import datetime
-from classes import Notebook, Note
+# Updated import from classes to models
+from models import Notebook, Note
 
 st.set_page_config(page_title="Python Notes", layout="wide")
 
@@ -84,12 +85,27 @@ with st.sidebar:
     # tag management
     st.write("---")
     with st.expander("Tagi"):
+        # add new tags
         new_tag = st.text_input("Dodaj nowy tag:")
         if st.button("Dodaj tag", use_container_width=True) and new_tag:
             nb.add_new_tag_to_system(new_tag)
             nb.save_to_json()
             st.rerun()
         
+        st.write("---")
+        
+        # remove existing tags
+        if nb.tags:
+            tag_to_remove = st.selectbox("Usuń tag:", options=sorted(list(nb.tags)))
+            if st.button("Usuń tag", type="secondary", use_container_width=True):
+                nb.remove_tag_from_system(tag_to_remove)
+                nb.save_to_json()
+                st.toast(f"Usunięto globalny tag: {tag_to_remove}")
+                st.rerun()
+        else:
+            st.caption("Brak globalnych tagów.")
+            
+        st.write("---")
         st.write("**Dostępne tagi:**")
         st.caption(", ".join(sorted(nb.tags)) if nb.tags else "Brak")
 

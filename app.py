@@ -39,6 +39,9 @@ if "selected_note_index" not in st.session_state:
 
 nb = st.session_state.notebook
 
+# Force the radio widget state to match the selection index rerun
+st.session_state.sidebar_radio = st.session_state.selected_note_index
+
 # Callback function to eliminate radio button lag
 def update_selection():
     st.session_state.selected_note_index = st.session_state.sidebar_radio

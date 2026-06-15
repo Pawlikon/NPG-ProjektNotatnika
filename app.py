@@ -7,10 +7,13 @@ st.set_page_config(page_title="Python Notes", layout="wide")
 # Custom CSS
 st.markdown("""
     <style>
-    /* Nuke the top deploy/menu bar and footer completely */
-    header, footer, [data-testid="stHeader"] {
-        visibility: hidden !important;
-        height: 0px !important;
+    /* Target and remove the Deploy button and options menu across all Streamlit versions */
+    [data-testid="stDeploymentDropdown"], .stAppDeployButton, [data-testid="stMainMenu"] {
+        display: none !important;
+    }
+    /* Keep the header container container tracking structural but fully see-through */
+    [data-testid="stHeader"] {
+        background-color: transparent !important;
     }
     .block-container {
         padding-top: 2rem !important;

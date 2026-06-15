@@ -1,27 +1,28 @@
 import json
 import os
 import datetime
+import urllib.parse
+import webbrowser
 
 
 class Note:
-    def __init__(self, title, content, date = None, tags=None):
+    def __init__(self, title, content, date=None, tags=None, modified_date=None):
         self.title = title
         self.content = content
-        self.date = date or datetime.datetime.now() #@KrzyzakPatryk, sprawdz to Jas. Generalnie @Pawel zasugerowal takie rozwiazanie, 
-                                                    #sprawdza czy date jest pustym obiektem i jak tak to wchodzi systemowa data 
-                                                    #a jak nie to to co wpisał użytkownik
+        self.date = date or datetime.datetime.now()
         self.tags = tags if tags is not None else []
+        self.modified_date = modified_date or date or datetime.datetime.now()
 
     def __str__(self):
         tags_str = ", ".join(self.tags) if self.tags else "Brak"
         return f"Tytuł: {self.title} \nOpis: {self.content} \nTagi: [{tags_str}] \nData utworzenia: {self.date.strftime('%Y-%m-%d %H:%M')}\n"
     def to_dict(self):
         """Metoda do zmiany obiektu notatki na slownik, do zapisu JSON"""
-        return {"title": self.title, "content": self.content, "date": (self.date).strftime("%Y-%m-%d %H:%M"), "tags": self.tags}
+        return {"title": self.title, "content": self.content, "date": self.date.strftime('%Y-%m-%d %H:%M'), "tags": self.tags, "modified_date": self.modified_date.strftime('%Y-%m-%d %H:%M')}
 
 
 class Notebook:
-    def __init__(self,filename = "notatki.json",tags_filename="tagi.json"):
+    def __init__(self, filename="notatki.json",tags_filename="tagi.json"):
         self.notes = []
         self.filename = filename
         self.tags_filename = tags_filename
@@ -38,30 +39,45 @@ class Notebook:
     # =============================
     def add_new_tag_to_system(self, new_tag):
         """Dodaje nowy, unikalny tag do globalnej puli Notebooka"""
-        formatted_tag = new_tag.strip().capitalize()
-        if formatted_tag in self.tags:
+        formatted_tag = new_tag.strip()
+        if not formatted_tag:  # Zabezpieczenie przed pustym tagiem
+            print("--- Błąd: Tag nie może być pusty! ---\n")
+            return
+
+        existing_tags_lower = {tag.lower() for tag in self.tags}
+        if formatted_tag.lower() in existing_tags_lower:
             print(f"--- Tag '{formatted_tag}' już istnieje w systemie! ---\n")
         else:
-            self.tags.add(formatted_tag)
+            self.tags.add(formatted_tag)  # Dodaje dokładnie tak, jak wpisał użytkownik
             print(f"--- Dodano nowy globalny tag: '{formatted_tag}' ---\n")
 
     def remove_tag_from_system(self, tag_name):
-        """Usuwa tag z systemu i automatycznie odpina go ze wszystkich notatek"""
-        formatted_tag = tag_name.strip().capitalize()
+        """Usuwa tag z systemu (ignorując wielkość liter) i automatycznie odpina go ze wszystkich notatek"""
+        search_tag = tag_name.strip().lower()
 
-        if formatted_tag not in self.tags:
-            print(f"--- Błąd: Tag '{formatted_tag}' nie istnieje w systemie ---\n")
+        # Szukamy oryginalnego tagu w bazie.
+        exact_tag_to_remove = None
+        for tag in self.tags:
+            if tag.lower() == search_tag:
+                exact_tag_to_remove = tag
+                break
+
+        if exact_tag_to_remove is None:
+            print(f"--- Błąd: Tag '{tag_name.strip()}' nie istnieje w systemie ---\n")
             return
 
-        # usuwamy z globalnego zbioru
-        self.tags.remove(formatted_tag)
-        print(f"--- Globalny tag '{formatted_tag}' został usunięty z systemu. ---")
+        # Usuwamy dokładną nazwę z globalnego zbioru
+        self.tags.remove(exact_tag_to_remove)
+        print(f"--- Globalny tag '{exact_tag_to_remove}' został usunięty z systemu. ---")
 
-        # usuwamy z reszty notatek, ktore go posiadaly
+        # Usuwamy z notatek (List comprehension odfiltruje WSZYSTKIE wystąpienia tego tagu)
         cleared_count = 0
         for note in self.notes:
-            if formatted_tag in note.tags:
-                note.tags.remove(formatted_tag)
+            # Sprawdzamy czy tag (wersja lowercase) był w tej notatce
+            note_tags_lower = [t.lower() for t in note.tags]
+            if search_tag in note_tags_lower:
+                # Nadpisujemy listę tagów notatki, pomijając usuwany tag
+                note.tags = [t for t in note.tags if t.lower() != search_tag]
                 cleared_count += 1
 
         if cleared_count > 0:
@@ -81,49 +97,52 @@ class Notebook:
     # =============================
 
     def add_tag_to_note(self, note_index, tag_name):
-        """Przypisuje tag z globalnej puli do konkretnej notatki"""
+        """Przypisuje tag z globalnej puli do konkretnej notatki (case-insensitive)"""
         real_index = note_index - 1
-        formatted_tag = tag_name.strip().capitalize()
+        search_tag = tag_name.strip().lower()
 
-        # czy notatka istnieje
         if not (0 <= real_index < len(self.notes)):
             print("--- Błąd. Nie ma notatki o takim numerze ---")
             return
 
-        # czy tag istnieje w bazie Notebooka
-        if formatted_tag not in self.tags:
-            print(
-                f"--- Błąd: Tag '{formatted_tag}' nie istnieje w systemie. Dodaj go do notatnika! ---\n"
-            )
+        # Szukamy czy tag istnieje w systemie i pobieramy jego oryginalny zapis
+        exact_system_tag = None
+        for tag in self.tags:
+            if tag.lower() == search_tag:
+                exact_system_tag = tag
+                break
+
+        if exact_system_tag is None:
+            print(f"--- Błąd: Tag '{tag_name.strip()}' nie istnieje w systemie. Dodaj go do notatnika! ---\n")
             return
 
-        # czy notatka już nie ma tego tagu
         note = self.notes[real_index]
-        if formatted_tag in note.tags:
-            print(
-                f"--- Notatka '{note.title}' ma już przypisany tag '{formatted_tag}' ---\n"
-            )
+        # Sprawdzamy czy notatka już go nie ma
+        if any(t.lower() == search_tag for t in note.tags):
+            print(f"--- Notatka '{note.title}' ma już przypisany tag pasujący do '{tag_name.strip()}' ---\n")
         else:
-            note.tags.append(formatted_tag)
-            print(
-                f"--- Pomyślnie przypisano tag '{formatted_tag}' do notatki '{note.title}' ---\n"
-            )
+            # Dodajemy oryginalną formę z systemu (np. "IT" zamiast "it")
+            note.tags.append(exact_system_tag)
+            print(f"--- Pomyślnie przypisano tag '{exact_system_tag}' do notatki '{note.title}' ---\n")
 
     def remove_tag_from_note(self, note_index, tag_name):
-        """Usuwa wybrany tag tylko z jednej, konkretnej notatki"""
+        """Usuwa wybrany tag tylko z jednej, konkretnej notatki (case-insensitive)"""
         real_index = note_index - 1
-        formatted_tag = tag_name.strip().capitalize()
+        search_tag = tag_name.strip().lower()
 
         if not (0 <= real_index < len(self.notes)):
             print("--- Błąd. Nie ma notatki o takim numerze ---")
             return
 
         note = self.notes[real_index]
-        if formatted_tag in note.tags:
-            note.tags.remove(formatted_tag)
-            print(f"--- Usunięto tag '{formatted_tag}' z notatki '{note.title}' ---\n")
+        note_tags_lower = [t.lower() for t in note.tags]
+
+        if search_tag in note_tags_lower:
+            removed_tags = [t for t in note.tags if t.lower() == search_tag]
+            note.tags = [t for t in note.tags if t.lower() != search_tag]
+            print(f"--- Usunięto tag '{removed_tags[0]}' z notatki '{note.title}' ---\n")
         else:
-            print(f"--- Ta notatka nie ma przypisanego tagu '{formatted_tag}' ---\n")
+            print(f"--- Ta notatka nie ma przypisanego tagu pasującego do '{tag_name.strip()}' ---\n")
 
     # ======================
 
@@ -168,8 +187,11 @@ class Notebook:
                 for item in raw_data:
                     date = datetime.datetime.strptime(item["date"], "%Y-%m-%d %H:%M") #konwertuje tekst daty na obiekt daty 
                                                                                       #tak aby ładnie dało się na nim wykonywać operacje
+                    modified_date = datetime.datetime.strptime(item.get("modified_date", item["date"]),
+                                                               "%Y-%m-%d %H:%M")
                     note_tags = item.get("tags", [])
-                    self.notes.append(Note(item["title"], item["content"], date, note_tags))
+                    self.notes.append(Note(item["title"], item["content"], date, note_tags, modified_date))
+                    self.tags.update(note_tags) # zabezpieczenie jakby cos sie stalo plikowi tagi.json
             print(f"---Wczytano {len(self.notes)} notatek z JSON.---")
         except Exception as e:
             print(f"---Błąd podczas wczytywania {e}---")
@@ -194,13 +216,20 @@ class Notebook:
     def edit_notes(self,index,new_title=None,new_content=None):
         real_index = index -1
         if 0 <= real_index < len(self.notes):
-            if new_title:
+            updated = False
+            if new_title is not None:
                 self.notes[real_index].title = new_title
-            if new_content:
+                updated = True
+            if new_content is not None:
                 self.notes[real_index].content = new_content
-            print(f"---Zaktualizowano notatke nr {index}---\n")
+                updated = True
+            if updated:
+                self.notes[real_index].modified_date = datetime.datetime.now()
+                print(f"---Zaktualizowano notatke nr {index}---\n")
+            else:
+                print("---Nic nie zmieniono (brak nowych wartości)---\n")
         else:
-            print("---Błąd. Nie ma notatki o takim numerze---\n")
+            print("--- Błąd. Nie ma notatki o takim numerze ---\n")
 
     def read_single_note(self, index):
         real_index = index - 1
@@ -210,6 +239,28 @@ class Notebook:
         else:
             print("---Błąd. Nie ma notatki o takim numerze---\n")
 
+    def send_mail(self, index, whereto):
+        real_index = index - 1
+        if not (0 <= real_index < len(self.notes)):
+            print(f"---Błąd. Nie ma notatki o takim numerze---\n")
+            return
+
+        title = self.notes[real_index].title
+        content = self.notes[real_index].content
+
+        m_title = f"Notatka: {title}"
+        m_content = f"Przesyłam notatkę:\n\n {content}"
+
+        # Kodowanie URI tak aby :mailto mogło ładnie obsłużyć całą wiadomość wraz ze znakami
+        m_coded_title = urllib.parse.quote(m_title)
+        m_coded_content = urllib.parse.quote(m_content)
+
+        url = f"mailto:{whereto}?subject={m_coded_title}&body={m_coded_content}"
+
+        # Wywołuje tutaj systemowy program poczty/
+        webbrowser.open(url)
+        print(f"Uruchomiono systemową pocztę dla adresata {whereto} z notatką o tytule {m_title}\n")
+
 if __name__ == "__main__":
     notatnik = Notebook()
     notatnik.load_from_json()
@@ -217,6 +268,9 @@ if __name__ == "__main__":
     notatnik.add_note("Próba tytułu", "Próba zawartości")
     notatnik.add_note("Zakupy", "Kup piwo")
     notatnik.add_note("Nauka", "Naucz sie arabskiego")
+
+    print("Sprawdzenie funkcji poczty")
+    notatnik.send_mail(2,"jakisarabzpiwem@gmail.com")
 
     print("STAN PRZED ZMIANAMI:")
     notatnik.read_notes(5)

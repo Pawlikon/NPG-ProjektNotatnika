@@ -251,7 +251,7 @@ class Notebook:
         m_title = f"Notatka: {title}"
         m_content = f"Przesyłam notatkę:\n\n {content}"
 
-        # Konwersja na URL tak aby :mailto mogło ładnie obsłużyć całą wiadomość wraz ze znakami
+        # Kodowanie URI tak aby :mailto mogło ładnie obsłużyć całą wiadomość wraz ze znakami
         m_coded_title = urllib.parse.quote(m_title)
         m_coded_content = urllib.parse.quote(m_content)
 

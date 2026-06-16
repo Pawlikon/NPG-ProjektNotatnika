@@ -213,7 +213,7 @@ class Notebook:
         else:
             print("---Błąd. Nie ma notatki o takim numerze---\n")
 
-    def edit_notes(self,index,new_title=None,new_content=None):
+    def edit_note(self,index,new_title=None,new_content=None):
         real_index = index -1
         if 0 <= real_index < len(self.notes):
             updated = False
@@ -275,7 +275,7 @@ if __name__ == "__main__":
     print("STAN PRZED ZMIANAMI:")
     notatnik.read_notes(5)
 
-    notatnik.edit_notes(2, new_title="Zakupy na weekend", new_content="Kup piwo i więcej piwa")
+    notatnik.edit_note(2, new_title="Zakupy na weekend", new_content="Kup piwo i więcej piwa")
     notatnik.delete_notes(1)
 
     print("STAN PO ZMIANACH:")
